@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sedaro Simulation Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/plotly.js@2.26.0/dist/plotly.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .plot-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .plot {
+      flex: 1;
+      min-width: 500px;
+      height: 500px;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 20px 0;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Sedaro Nano Gravitational Simulation Test</h1>
+    
+    <div>
+      <h2>Simulation Parameters</h2>
+      <form id="simForm">
+        <h3>Body1</h3>
+        <div class="form-group">
+          <label for="body1_pos_x">X Position:</label>
+          <input type="number" id="body1_pos_x" value="-0.73" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="body1_pos_y">Y Position:</label>
+          <input type="number" id="body1_pos_y" value="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="body1_pos_z">Z Position:</label>
+          <input type="number" id="body1_pos_z" value="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="body1_vel_x">X Velocity:</label>
+          <input type="number" id="body1_vel_x" value="0" step="0.001">
+        </div>
+        <div class="form-group">
+          <label for="body1_vel_y">Y Velocity:</label>
+          <input type="number" id="body1_vel_y" value="-0.0015" step="0.001">
+        </div>
+        <div class="form-group">
+          <label for="body1_vel_z">Z Velocity:</label>
+          <input type="number" id="body1_vel_z" value="0" step="0.001">
+        </div>
+        <div class="form-group">
+          <label for="body1_mass">Mass:</label>
+          <input type="number" id="body1_mass" value="1" step="0.001">
+        </div>
+        
+        <h3>Body2</h3>
+        <div class="form-group">
+          <label for="body2_pos_x">X Position:</label>
+          <input type="number" id="body2_pos_x" value="60.34" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="body2_pos_y">Y Position:</label>
+          <input type="number" id="body2_pos_y" value="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="body2_pos_z">Z Position:</label>
+          <input type="number" id="body2_pos_z" value="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="body2_vel_x">X Velocity:</label>
+          <input type="number" id="body2_vel_x" value="0" step="0.001">
+        </div>
+        <div class="form-group">
+          <label for="body2_vel_y">Y Velocity:</label>
+          <input type="number" id="body2_vel_y" value="0.13" step="0.001">
+        </div>
+        <div class="form-group">
+          <label for="body2_vel_z">Z Velocity:</label>
+          <input type="number" id="body2_vel_z" value="0" step="0.001">
+        </div>
+        <div class="form-group">
+          <label for="body2_mass">Mass:</label>
+          <input type="number" id="body2_mass" value="0.123" step="0.001">
+        </div>
+        
+        <button type="button" id="runButton">Run Simulation</button>
+      </form>
+    </div>
+    
+    <div class="plot-container">
+      <div id="positionPlot" class="plot"></div>
+      <div id="velocityPlot" class="plot"></div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('runButton').addEventListener('click', runSimulation);
+
+    function runSimulation() {
+      // Collect data from form
+      const body1 = {
+        position: {
+          x: parseFloat(document.getElementById('body1_pos_x').value),
+          y: parseFloat(document.getElementById('body1_pos_y').value),
+          z: parseFloat(document.getElementById('body1_pos_z').value)
+        },
+        velocity: {
+          x: parseFloat(document.getElementById('body1_vel_x').value),
+          y: parseFloat(document.getElementById('body1_vel_y').value),
+          z: parseFloat(document.getElementById('body1_vel_z').value)
+        },
+        mass: parseFloat(document.getElementById('body1_mass').value)
+      };
+
+      const body2 = {
+        position: {
+          x: parseFloat(document.getElementById('body2_pos_x').value),
+          y: parseFloat(document.getElementById('body2_pos_y').value),
+          z: parseFloat(document.getElementById('body2_pos_z').value)
+        },
+        velocity: {
+          x: parseFloat(document.getElementById('body2_vel_x').value),
+          y: parseFloat(document.getElementById('body2_vel_y').value),
+          z: parseFloat(document.getElementById('body2_vel_z').value)
+        },
+        mass: parseFloat(document.getElementById('body2_mass').value)
+      };
+
+      // Send to API
+      fetch('http://localhost:8000/simulation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          "Body1": {
+            position: body1.position,
+            velocity: body1.velocity,
+            mass: body1.mass
+          },
+          "Body2": {
+            position: body2.position,
+            velocity: body2.velocity,
+            mass: body2.mass
+          }
+        })
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        plotData(data);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to run simulation. Check console for details.');
+      });
+    }
+
+    function plotData(data) {
+      // Process data for plotting
+      const positionsBody1 = {
+        x: [],
+        y: [],
+        z: [],
+        name: 'Body1',
+        mode: 'lines+markers',
+        type: 'scatter3d',
+        marker: { size: 4 },
+        line: { width: 2 }
+      };
+      
+      const positionsBody2 = {
+        x: [],
+        y: [],
+        z: [],
+        name: 'Body2',
+        mode: 'lines+markers',
+        type: 'scatter3d',
+        marker: { size: 4 },
+        line: { width: 2 }
+      };
+      
+      const velocitiesBody1 = {
+        x: [],
+        y: [],
+        z: [],
+        name: 'Body1',
+        mode: 'lines+markers',
+        type: 'scatter3d',
+        marker: { size: 4 },
+        line: { width: 2 }
+      };
+      
+      const velocitiesBody2 = {
+        x: [],
+        y: [],
+        z: [],
+        name: 'Body2',
+        mode: 'lines+markers',
+        type: 'scatter3d',
+        marker: { size: 4 },
+        line: { width: 2 }
+      };
+      
+      // Parse data from API
+      data.forEach(([t0, t1, frame]) => {
+        if (frame.Body1 && frame.Body1.position) {
+          positionsBody1.x.push(frame.Body1.position.x);
+          positionsBody1.y.push(frame.Body1.position.y);
+          positionsBody1.z.push(frame.Body1.position.z);
+          
+          velocitiesBody1.x.push(frame.Body1.velocity.x);
+          velocitiesBody1.y.push(frame.Body1.velocity.y);
+          velocitiesBody1.z.push(frame.Body1.velocity.z);
+        }
+        
+        if (frame.Body2 && frame.Body2.position) {
+          positionsBody2.x.push(frame.Body2.position.x);
+          positionsBody2.y.push(frame.Body2.position.y);
+          positionsBody2.z.push(frame.Body2.position.z);
+          
+          velocitiesBody2.x.push(frame.Body2.velocity.x);
+          velocitiesBody2.y.push(frame.Body2.velocity.y);
+          velocitiesBody2.z.push(frame.Body2.velocity.z);
+        }
+      });
+      
+      // Plot positions
+      Plotly.newPlot('positionPlot', [positionsBody1, positionsBody2], {
+        title: 'Position',
+        scene: {
+          xaxis: { title: 'X' },
+          yaxis: { title: 'Y' },
+          zaxis: { title: 'Z' }
+        },
+        autosize: true,
+        dragmode: 'turntable'
+      });
+      
+      // Plot velocities
+      Plotly.newPlot('velocityPlot', [velocitiesBody1, velocitiesBody2], {
+        title: 'Velocity',
+        scene: {
+          xaxis: { title: 'X' },
+          yaxis: { title: 'Y' },
+          zaxis: { title: 'Z' }
+        },
+        autosize: true,
+        dragmode: 'turntable'
+      });
+    }
+  </script>
+</body>
+</html>
